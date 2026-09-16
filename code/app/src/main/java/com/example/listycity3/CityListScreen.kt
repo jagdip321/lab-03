@@ -1,5 +1,6 @@
 package com.example.listycity3
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -25,16 +26,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.selection.selectable
 
 @Composable
 fun CityListScreen(
     cities: List<City>,
     onAddCity: (City) -> Unit,
+    onEditCity: (City, City) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var newCityName by remember { mutableStateOf("") }
     var newProvince by remember { mutableStateOf("") }
     var showAddCityFields by remember { mutableStateOf(false) }
+    var selectedCity by remember { mutableStateOf<City?>(null) }
     Column(modifier = modifier.fillMaxSize()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -77,7 +81,8 @@ fun CityListScreen(
                 Button(
                     modifier = Modifier.padding(vertical = 12.dp),
                     onClick = {
-                        if (newCityName.isNotBlank() && newProvince.isNotBlank()) {
+                        val currentSelected = selectedCity
+                        if (newCityName.isNotBlank() && newProvince.isNotBlank() && currentSelected == null) {
                             onAddCity(
                                 City(
                                     name = newCityName,
@@ -87,16 +92,42 @@ fun CityListScreen(
                             newCityName = ""
                             newProvince = ""
                             showAddCityFields = false
+                            selectedCity = null
+                        }
+                        else if (newCityName.isNotBlank() && newProvince.isNotBlank() && currentSelected != null) {
+                            onEditCity(
+                                currentSelected,
+                                City(
+                                    name = newCityName,
+                                    province = newProvince
+                                )
+                            )
+                            newCityName = ""
+                            newProvince = ""
+                            showAddCityFields = false
+                            selectedCity = null
                         }
                     }
                 ) {
-                    Text("Add City")
+                    if (selectedCity == null) {
+                        Text("Add City")
+                    } else {
+                        Text("Edit City")
+                    }
                 }
             }
         }
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             itemsIndexed(cities) { index, city ->
-                CityRow(city = city)
+                CityRow(
+                    city = city,
+                    modifier = Modifier
+                        .selectable(
+                            selected = city == selectedCity,
+                            onClick = { if (selectedCity != city) {selectedCity = city} else {selectedCity = null}}
+                    )
+                        .background(if (city == selectedCity) androidx.compose.ui.graphics.Color.LightGray else androidx.compose.ui.graphics.Color.Transparent)
+                )
 
                 if (index < cities.lastIndex) {
                     HorizontalDivider()
@@ -107,9 +138,9 @@ fun CityListScreen(
 }
 
 @Composable
-fun CityRow(city: City) {
+fun CityRow(city: City, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
@@ -137,7 +168,8 @@ fun CityListScreenPreview() {
                 City("Vancouver", "BC"),
                 City("Calgary", "AB")
             ),
-            onAddCity = {}
+            onAddCity = {},
+            onEditCity = { _, _ -> }
         )
     }
 }
