@@ -7,7 +7,7 @@
 
 ## References and Resources
 
-`N/A`
+`Used Gemini to ask questions. No code from Gemini was explicitly copied.`
 
 ## Verbal Collaboration
 
